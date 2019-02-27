@@ -15,7 +15,7 @@
 * Python 3.6
 * Pytorch 1.0
 * yacs v0.1.5
-
+* OpenAI baseline https://github.com/openai/baselines
 
 ##### Results
 ```
