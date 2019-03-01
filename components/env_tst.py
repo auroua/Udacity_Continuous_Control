@@ -4,7 +4,7 @@ import numpy as np
 
 if __name__ == '__main__':
     env = UnityEnvironment(
-        file_name='../Reacher_Env/single_agent/Reacher_Linux/Reacher.x86_64')
+        file_name='../Reacher_Env/multiple_agent/Reacher_Linux/Reacher.x86_64')
     # get the default brain
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
@@ -36,6 +36,7 @@ if __name__ == '__main__':
         next_states = env_info.vector_observations  # get next state (for each agent)
         rewards = env_info.rewards  # get reward (for each agent)
         dones = env_info.local_done  # see if episode finished
+        print(dones)
         scores += env_info.rewards  # update the score (for each agent)
         states = next_states  # roll over states to next time step
         if np.any(dones):  # exit loop if episode finished
