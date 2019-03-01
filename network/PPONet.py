@@ -18,8 +18,8 @@ class PPOPolicy(nn.Module):
 
     def forward(self, x, action=None):
         x = F.relu(self.fc1(x))
-        x = F.dropout(F.relu(self.fc2(x)), p=0.5)
-        x = F.dropout(F.relu(self.fc3(x)), p=0.5)
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
         mean = torch.tanh(self.fc4(x))
 
         dist = torch.distributions.Normal(mean, F.softplus(self.std))

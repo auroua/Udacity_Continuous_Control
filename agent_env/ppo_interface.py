@@ -4,7 +4,7 @@ from components import get_cfg_defaults
 from agent import PPOAgent
 import progressbar as pb
 import torch.optim as optim
-
+import torch
 
 hyper_parameter = get_cfg_defaults().HYPER_PARAMETER.clone()
 train_parameter = get_cfg_defaults().TRAIN_PARAMETER.clone()
@@ -36,26 +36,36 @@ beta = hyper_parameter.BETA
 
 def train():
     global epsilon, beta
-    agent = PPOAgent()
-    optimizer = getattr(optim, train_parameter)(agent.policy.parameters(), lr=train_parameter.LR,
-                                                momentum=train_parameter.MOMENTUM)
+    agent = PPOAgent(env)
+    agent.policy.train()
+    if train_parameter.OPTIMIZER == 'SGD':
+        optimizer = getattr(optim, train_parameter.OPTIMIZER)(agent.policy.parameters(), lr=train_parameter.LR,
+                                                              momentum=train_parameter.MOMENTUM)
+    if train_parameter.OPTIMIZER == 'Adam':
+        optimizer = getattr(optim, train_parameter.OPTIMIZER)(agent.policy.parameters(), lr=train_parameter.LR,
+                                                              eps=1e-5)
+
     mean_rewards = []
     for i in range(train_parameter.EPISODES):
-        states, rewards, log_probs, actions, ent, dones = agent.collecct_trajectories(env, brain_name, tmax=500)
+        print('=================Episodes %d begin! ======================' % i)
+        states, rewards, log_probs, actions, ent, dones = agent.collecct_trajectories(brain_name,
+                                                                                      tmax=hyper_parameter.TMAX)
         # print('Episodes %d begin~~~~~' % i)
         # print('state info: ', len(states), states[0].shape)
-        # print('rewards info: ', np.array(rewards).shape)
-        # print('log_probs info: ', np.array(log_probs).shape)
+        # print('rewards info: ', rewards.shape)
+        # print('log_probs info: ', log_probs.shape)
         # print('actions info: ', len(actions), actions[0].shape)
-        # print('ent info: ', np.array(ent).shape)
+        # print('ent info: ', ent.shape)
         # print()
 
         total_rewards = np.sum(rewards, axis=0)
 
         for _ in range(hyper_parameter.SURROGATE):
-            loss = -agent.clip_surrogate(log_probs, states, actions, rewards, epsilon=epsilon, beta=beta)
+            loss = -agent.clip_surrogate(log_probs, states, actions, rewards, epsilon=epsilon,
+                                         beta=beta)
             optimizer.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(agent.policy.parameters(), train_parameter.Gradient_Clip)
             optimizer.step()
             del loss
 
@@ -71,7 +81,7 @@ def train():
 
         # display some progress every 20 iterations
         if (i + 1) % 20 == 0:
-            print("Episode: {0:d}, score: {1:f}".format(i + 1, mean_rewards))
+            print("Episode: %d, score: %.2f"% (i + 1, np.mean(total_rewards)))
             print(total_rewards)
 
         # update progress widget bar
