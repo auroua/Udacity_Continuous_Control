@@ -2,21 +2,11 @@ import torch
 from network import A2CNet
 from components import get_ac_cfg_defaults, Task, Storage
 import numpy as np
+from components import to_np, tensor
+import adabound
 
 hyper_parameter = get_ac_cfg_defaults().HYPER_PARAMETER.clone()
 train_parameter = get_ac_cfg_defaults().TRAIN_PARAMETER.clone()
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-
-def to_np(t):
-    return t.cpu().detach().numpy()
-
-
-def tensor(x):
-    if isinstance(x, torch.Tensor):
-        return x
-    x = torch.tensor(x, device=device, dtype=torch.float32)
-    return x
 
 
 class A2CAgent(torch.nn.Module):
@@ -29,8 +19,9 @@ class A2CAgent(torch.nn.Module):
         self.online_rewards = np.zeros(hyper_parameter.AGENTS_NUM)
         self.episode_rewards = []
         self.total_steps = 0
-        # self.optimizer = torch.optim.RMSprop(self.policy.total_params, lr=0.0007)
-        self.optimizer = torch.optim.Adam(self.policy.total_params, lr=1e-4, eps=1e-5)
+        self.optimizer = torch.optim.RMSprop(self.policy.total_params, lr=0.0007)
+        # self.optimizer = torch.optim.Adam(self.policy.total_params, lr=1e-4, eps=1e-5)
+        # self.optimizer = adabound.AdaBound(self.policy.total_params, lr=1e-4, final_lr=1.0)
 
     def step(self):
         storage = Storage(self.rollout_length)
@@ -44,7 +35,7 @@ class A2CAgent(torch.nn.Module):
                 if terminal:
                     self.episode_rewards.append(self.online_rewards[i])
                     self.online_rewards[i] = 0
-                    next_states = self.task.reset().vector_observations
+                    # next_states = self.task.reset().vector_observations
             storage.add(prediction)
             storage.add({'r': tensor(rewards).unsqueeze(-1),
                          'm': tensor(1 - terminals).unsqueeze(-1)})

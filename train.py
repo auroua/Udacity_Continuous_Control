@@ -1,17 +1,19 @@
-from agent import A2CAgent
-from components import get_ac_cfg_defaults
+from agent import A2CAgent, PPOACAgent
+from components import get_ppo_ac_cfg_defaults
 import time
 import numpy as np
 
-hyper_parameter = get_ac_cfg_defaults().HYPER_PARAMETER.clone()
+hyper_parameter = get_ppo_ac_cfg_defaults().HYPER_PARAMETER.clone()
 env_path = './Reacher_Env/multiple_agents/Reacher_Linux/Reacher.x86_64'
 
 if __name__ == '__main__':
-    agent = A2CAgent(env_path)
+    # agent = A2CAgent(env_path)
+    agent = PPOACAgent(env_path)
     agent_name = agent.__class__.__name__
     t0 = time.time()
     while True:
-        if hyper_parameter.SAVE_INTERVAL and not agent.total_steps % hyper_parameter.SAVE_INTERVAL and len(agent.episode_rewards):
+        if hyper_parameter.SAVE_INTERVAL and not agent.total_steps % hyper_parameter.SAVE_INTERVAL \
+                and len(agent.episode_rewards) and max(agent.episode_rewards) >= 30:
             agent.save('saved_models/model-%s-%s.pth' % (agent_name, str(agent.total_steps)))
         if hyper_parameter.LOG_INTERVAL and not agent.total_steps % hyper_parameter.LOG_INTERVAL and len(agent.episode_rewards):
             rewards = agent.episode_rewards

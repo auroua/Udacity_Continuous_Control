@@ -1,15 +1,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from components import get_ac_cfg_defaults, layer_init
+from components import get_ppo_ac_cfg_defaults, device, layer_init
 
-hyper_parameter = get_ac_cfg_defaults().HYPER_PARAMETER.clone()
-model_parameter = get_ac_cfg_defaults().MODEL_PARAMETER.clone()
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+hyper_parameter = get_ppo_ac_cfg_defaults().HYPER_PARAMETER.clone()
+model_parameter = get_ppo_ac_cfg_defaults().MODEL_PARAMETER.clone()
 
 
 class ActorNet(nn.Module):
-    def __init__(self, gate=F.relu):
+    def __init__(self, gate=torch.tanh):
         super(ActorNet, self).__init__()
         self.layer1 = layer_init(nn.Linear(hyper_parameter.STATE_SPACE, model_parameter.H1))
         self.layer2 = layer_init(nn.Linear(model_parameter.H1, model_parameter.H2))
@@ -22,7 +21,7 @@ class ActorNet(nn.Module):
 
 
 class CriticNet(nn.Module):
-    def __init__(self, gate=F.relu):
+    def __init__(self, gate=torch.tanh):
         super(CriticNet, self).__init__()
         self.layer1 = layer_init(nn.Linear(hyper_parameter.STATE_SPACE, model_parameter.H1))
         self.layer2 = layer_init(nn.Linear(model_parameter.H1, model_parameter.H2))
@@ -34,9 +33,9 @@ class CriticNet(nn.Module):
         return x
 
 
-class A2CNet(nn.Module):
+class PPOACNet(nn.Module):
     def __init__(self):
-        super(A2CNet, self).__init__()
+        super(PPOACNet, self).__init__()
         self.actor_body = ActorNet()
         self.critic_body = CriticNet()
         self.fc_actor = layer_init(nn.Linear(model_parameter.H2, hyper_parameter.ACTION_SPACE), 1e-3)
@@ -50,7 +49,10 @@ class A2CNet(nn.Module):
         self.total_params.append(self.std)
 
     def forward(self, x, action=None):
-        x = torch.tensor(x, dtype=torch.float32, device=device)
+        if action is None:
+            x = torch.tensor(x, dtype=torch.float32, device=device)
+        else:
+            x = x.to(device)
         actor_out = self.actor_body(x)
         critic_out = self.critic_body(x)
         mean = torch.tanh(self.fc_actor(actor_out))
