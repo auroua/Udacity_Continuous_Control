@@ -16,6 +16,8 @@ class PPOAgent:
         self.action_size = hyper_parameter.ACTION_SPACE
         self.tmax = hyper_parameter.TMAX
         self.env = env
+        self.cum_rewards = 0.0
+        self.rewards_std = 0.0
 
     def collecct_trajectories(self, brain_name, tmax=200):
         env = self.env
@@ -23,6 +25,7 @@ class PPOAgent:
         state_list = []
         reward_list = []
         log_probs = []
+        prob_list = []
         action_list = []
         ent_list = []
         dones_list = []
@@ -34,16 +37,10 @@ class PPOAgent:
             for t in range(tmax):
                 states_tensor = torch.tensor(states, dtype=torch.float32, device=self.device)
                 outs = self.policy(states_tensor)
-
                 actions = outs['a'].cpu().detach().numpy()
-                actions = np.clip(actions, -1, 1)
+                actions = np.clip(actions, -1.0, 1.0)
                 lprob = outs['log_pi_a'].cpu().detach().numpy()
-                print('#################'*30)
-                print(states[0])
-                print()
-                print(actions)
-                print()
-                print(lprob)
+                prob = outs['prob'].cpu().detach().numpy()
                 ent = outs['ent'].cpu().detach().numpy()
                 env_info = env.step(actions)[brain_name]
                 next_states = env_info.vector_observations
@@ -58,18 +55,19 @@ class PPOAgent:
                 log_probs.append(lprob)
                 ent_list.append(ent)
                 dones_list.append(dones)
-
+                prob_list.append(prob)
                 states = next_states
         return state_list, np.array(reward_list), np.array(log_probs), action_list, \
-               np.array(ent_list), dones_list
+               np.array(ent_list), dones_list, np.array(prob_list)
 
     def clip_surrogate(self, old_probs, states, actions, rewards, epsilon, beta):
-        new_probs = torch.zeros(self.tmax, self.num_agents, dtype=torch.float32)
+        new_probs = torch.zeros(old_probs.shape[0], self.num_agents, self.action_size, dtype=torch.float32)
         rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
         rewards_mean = torch.mean(rewards, dim=1, keepdim=True)
         rewards_std = torch.std(rewards, dim=1, keepdim=True, unbiased=True)
         rewards = (rewards - rewards_mean) / (rewards_std + 1e-10)
         rewards = torch.flip(torch.cumsum(torch.flip(rewards, dims=(0,)), dim=0), dims=(0,))
+        rewards = rewards.unsqueeze(-1)
 
         old_probs = torch.tensor(old_probs, dtype=torch.float32, device=self.device)
         # convert states to policy (or probability)
@@ -77,38 +75,11 @@ class PPOAgent:
             states_n = torch.tensor(states[i], dtype=torch.float32, device=self.device)
             action_n = torch.tensor(actions[i], dtype=torch.float32, device=self.device)
             outs = self.policy(states_n, action_n)
-            new_probs[i] = outs['log_pi_a']
+            new_probs[i] = outs['prob']
         new_probs = new_probs.to(self.device)
-        ratio = new_probs / (old_probs + 1.e-10)
+        ratio = torch.log(new_probs / (old_probs + 1.e-10))
         clip_ratio = torch.clamp(ratio, 1 - epsilon, 1 + epsilon)
         ratio = torch.min(ratio, clip_ratio)
         entropy = -(new_probs * torch.log(old_probs + 1.e-10) + \
                     (1.0 - new_probs) * torch.log(1.0 - old_probs + 1.e-10))
-        return torch.mean(ratio * rewards + beta * entropy)
-
-    def surrogate(self, policy, old_probs, states, actions, rewards, discount=0.995, beta=0.01):
-        rewards = torch.tensor(rewards, dtype=torch.float32, device=self.device)
-        rewards = torch.flip(torch.cumsum(torch.flip(rewards, dims=(0,)), dim=0), dims=(0,))
-        rewards_mean = torch.mean(rewards, dim=1, keepdim=True)
-        rewards_std = torch.std(rewards, dim=1, keepdim=True, unbiased=True)
-        rewards = (rewards - rewards_mean) / (rewards_std + 1e-10)
-
-        actions = torch.tensor(actions, dtype=torch.int8, device=device)
-
-        old_probs = torch.tensor(old_probs, dtype=torch.float32, device=device)
-        # convert states to policy (or probability)
-        new_probs = pong_utils.states_to_prob(policy, states)
-        new_probs = torch.where(actions == pong_utils.RIGHT, new_probs, 1.0 - new_probs)
-
-        ratio = new_probs / (old_probs + 1.e-10)
-
-        clip_ratio = torch.clamp(ratio, 1 - epsilon, 1 + epsilon)
-        ratio = torch.min(ratio, clip_ratio)
-        # include a regularization term
-        # this steers new_policy towards 0.5
-        # prevents policy to become exactly 0 or 1 helps exploration
-        # add in 1.e-10 to avoid log(0) which gives nan
-        entropy = -(new_probs * torch.log(old_probs + 1.e-10) + \
-                    (1.0 - new_probs) * torch.log(1.0 - old_probs + 1.e-10))
-
         return torch.mean(ratio * rewards + beta * entropy)

@@ -25,11 +25,13 @@ class PPOPolicy(nn.Module):
         dist = torch.distributions.Normal(mean, F.softplus(self.std))
         if action is None:
             action = dist.sample()
-        log_prob = dist.log_prob(action).sum(-1)
-        entropy = dist.entropy().sum(-1)
+        log_prob = dist.log_prob(action)
+        prob = torch.exp(log_prob)
+        entropy = dist.entropy().mean(-1)
         return {
             'a': action,
             'log_pi_a': log_prob,
+            'prob': prob,
             'mean': mean,
             'ent': entropy
         }

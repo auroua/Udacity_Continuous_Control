@@ -1,4 +1,4 @@
 from .PPONet import PPOPolicy
-from .A3CNet import A3CNet
+from .A2CNet import A2CNet
 
-__all__ = (PPOPolicy, A3CNet)
+__all__ = (PPOPolicy, A2CNet)
