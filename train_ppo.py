@@ -11,7 +11,7 @@ hyper_parameter = get_cfg_defaults().HYPER_PARAMETER.clone()
 train_parameter = get_cfg_defaults().TRAIN_PARAMETER.clone()
 
 
-env = UnityEnvironment(file_name='../Reacher_Env/multiple_agents/Reacher_Linux/Reacher.x86_64', no_graphics=True)
+env = UnityEnvironment(file_name='./Reacher_Env/multiple_agents/Reacher_Linux/Reacher.x86_64', no_graphics=True)
 brain_name = env.brain_names[0]
 brain = env.brains[brain_name]
 # reset the environment
@@ -53,14 +53,6 @@ def train():
         # print('=================Episodes %d begin! ======================' % i)
         states, rewards, _, actions, ent, dones, prob_list = agent.collecct_trajectories(brain_name,
                                                                                          tmax=hyper_parameter.TMAX)
-        # print('Episodes %d begin~~~~~' % i)
-        # print('state info: ', len(states), states[0].shape)
-        # print('prob info: ', prob_list.shape)
-        # print('rewards info: ', rewards.shape)
-        # print('log_probs info: ', log_probs.shape)
-        # print('actions info: ', len(actions), actions[0].shape)
-        # print('ent info: ', ent.shape)
-        # print()
 
         total_rewards = np.sum(rewards, axis=0)
 

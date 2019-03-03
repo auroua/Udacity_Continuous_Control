@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 from unityagents import UnityEnvironment
-from .agent_config import get_cfg_defaults
+from .config_ppo import get_cfg_defaults
 from abc import ABC, abstractmethod
 # adapted from https://github.com/ikostrikov/pytorch-a2c-ppo-acktr/blob/master/envs.py
 
@@ -113,12 +113,6 @@ class VecEnv(ABC):
             return self.venv.unwrapped
         else:
             return self
-
-    def get_viewer(self):
-        if self.viewer is None:
-            from gym.envs.classic_control import rendering
-            self.viewer = rendering.SimpleImageViewer()
-        return self.viewer
 
 
 class VecEnvWrapper(VecEnv):
