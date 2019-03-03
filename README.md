@@ -38,5 +38,5 @@
 
 
 #### References
-1. [AdaBound](https://github.com/Luolc/AdaBound)
+1. [Udacity Deep Reinforcement Learning](https://github.com/udacity/deep-reinforcement-learning)
 2. [DeepRL](https://github.com/ShangtongZhang/DeepRL)
