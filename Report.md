@@ -218,7 +218,9 @@ I have tried PPO, PPO with actor-critic and AC2, only PPO with actor-critic can 
         Reacher Environment solved!
     ```
     ![ppo_actor_critic](./results/PPO_AC.png)
-    Agent Running Screenshot
+    
+    Test Result
+    
     ![ppo_actor_critic_results](./results/ppo_ac_pic.png)
 
 
