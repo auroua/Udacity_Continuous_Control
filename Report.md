@@ -1,27 +1,44 @@
 #### Learning Algorithms
-**Deep Q-Learning**
+**PPO actor-critic**
 ```
-Choose Reply Buffer Size N1, gamma, tau, batch_size, update_target_period, init step=0
-create q_network, q_target_network
+Choose t-max, step, 
+create actor network, critic network and the ppo network.
 for i in episodes (0.....10000)
-    init env and get the init state, step=0
-    while not done:
-        the agent choose a new action a_i
-        the env generate reward , next_state and done(finish flag)
-        save the (state action next_state reward done) into replay memory
-        if replay memory size >  batch_size:
-            sample a minibatch (send the data into deep neural network which contain two hidden layer with 512 units).
-            get action from dnn
-            calculate the loss by MSE(Q(state, action, theta) - reward - max_a Q(next_state, max_a, theta_fixed))^2
-            backward the loss
-        step+=1
-    if step > update_target_period:
-        update the target network
-            
+    collect trajecty  (if t exceeds t-max or done)
+    for i in surrgate_iteration:
+        random sample batch training datas (s, a, r, s_n)
+        pred = policy(s, a) and get new log_prob
+        calculate actor loss
+        calculate critic loss
+        loss backward         
 ```
 
+#### Hyper Parameters
+
+| parameter   |      value | 
+|----------|:-------------:|
+| epsilon  |     0.2       | 
+| beta     |     0.01      |
+| discount rate | 0.99     |
+| rollout length | 2048    |
+| surrgate clip value | 0.2|
+| surrgate iteration  | 10 |
+| batch-size    |    64    |
+| learning rate |   3e-4   |
+| optimizer     |    Adam  |
+
+
+#### Networks
+* Actor Network two fully connected layer, with hidden layer 64.
+* Critic Network two fully connected layer, with hidden layer 64.
+* A fully Connected layer link Actor Network output and action entried.
+* A fully Connected layer link Critic output and 1-dim output.
+
+
 #### Results
-*  **PPO Actor Ciritc**
+I have tried PPO, PPO with actor-critic and AC2, only PPO with actor-critic can meets the requirement. The following is running detail of PPO with actor-critic. 
+
+*  **PPO Actor-Ciritc**
 
     ```
         total steps 1, returns 0.16/0.00/0.00/0.91 (mean/median/min/max), 85.29 steps/s
@@ -201,10 +218,12 @@ for i in episodes (0.....10000)
         Reacher Environment solved!
     ```
     ![ppo_actor_critic](./results/PPO_AC.png)
+    Agent Running Screenshot
+    ![ppo_actor_critic_results](./results/ppo_ac_pic.png)
 
 
 #### Future Ideas
-* Implement Double DQN
-* Implement Dueling DQN
-* Using Prioritized Experience Replay
-* Implement Rainbow
+* To test different hyper parameter combination in order to meets the project requirements using algorithm ac2.
+* Implement DDPG
+* Implement SAC
+* Implement SAC with automatically adujsted temperature
