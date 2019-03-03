@@ -2,7 +2,6 @@ from unityagents import UnityEnvironment
 import numpy as np
 from components import get_cfg_defaults
 from agent import PPOAgent
-import progressbar as pb
 import torch.optim as optim
 import torch
 import adabound
@@ -28,8 +27,8 @@ state_size = states.shape[1]
 print('Each observes a state with length : %d' % state_size)
 
 
-widget = ['training loop: ', pb.Percentage(), ' ', pb.Bar(), ' ', pb.ETA()]
-timer = pb.ProgressBar(widgets=widget, maxval=train_parameter.EPISODES).start()
+# widget = ['training loop: ', pb.Percentage(), ' ', pb.Bar(), ' ', pb.ETA()]
+# timer = pb.ProgressBar(widgets=widget, maxval=train_parameter.EPISODES).start()
 
 epsilon = hyper_parameter.EPSILON
 beta = hyper_parameter.BETA
@@ -50,7 +49,6 @@ def train():
 
     mean_rewards = []
     for i in range(train_parameter.EPISODES):
-        # print('=================Episodes %d begin! ======================' % i)
         states, rewards, _, actions, ent, dones, prob_list = agent.collecct_trajectories(brain_name,
                                                                                          tmax=hyper_parameter.TMAX)
 
@@ -80,8 +78,8 @@ def train():
             print("Episode: %d, score: %.2f"% (i + 1, np.mean(total_rewards)))
             print(total_rewards)
 
-        # update progress widget bar
-        timer.update(i + 1)
+        # # update progress widget bar
+        # timer.update(i + 1)
 
 
 if __name__ == '__main__':

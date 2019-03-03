@@ -19,7 +19,7 @@ _C.HYPER_PARAMETER.ACTION_SPACE = 4
 # Environment State Space Size
 _C.HYPER_PARAMETER.STATE_SPACE = 33
 # Surrogate length
-_C.HYPER_PARAMETER.SURROGATE = 4
+_C.HYPER_PARAMETER.SURROGATE = 10
 # MAX Single Episodes length
 _C.HYPER_PARAMETER.TMAX = 10000
 # Suggort clip value
