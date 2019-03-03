@@ -200,3 +200,6 @@ class Task:
     def step(self, actions):
         actions = np.clip(actions, -1.0, 1.0)
         return self.env.step(actions)
+
+    def close(self):
+        self.env.close()

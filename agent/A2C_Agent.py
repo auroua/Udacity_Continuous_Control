@@ -31,11 +31,9 @@ class A2CAgent(torch.nn.Module):
             next_states, rewards, terminals = self.task.step(to_np(prediction['a']))
             self.online_rewards += rewards
             for i, terminal in enumerate(terminals):
-                # print(str(terminal)[0], end='#')
                 if terminal:
                     self.episode_rewards.append(self.online_rewards[i])
                     self.online_rewards[i] = 0
-                    # next_states = self.task.reset().vector_observations
             storage.add(prediction)
             storage.add({'r': tensor(rewards).unsqueeze(-1),
                          'm': tensor(1 - terminals).unsqueeze(-1)})
@@ -77,5 +75,9 @@ class A2CAgent(torch.nn.Module):
 
     def save(self, filename):
         torch.save(self.policy.state_dict(), filename)
+
+    def close(self):
+        self.task.close()
+
 
 

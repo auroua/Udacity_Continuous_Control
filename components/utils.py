@@ -64,3 +64,12 @@ class Storage:
     def cat(self, keys):
         data = [getattr(self, k)[:self.size] for k in keys]
         return map(lambda x: torch.cat(x, dim=0), data)
+
+
+def get_episodes_count(episode_list, max_val):
+    """
+    This method is used to count the count of episode_list value which is bigger than 30
+    :param episode_list:
+    :return:
+    """
+    return len([x for x in episode_list if x > max_val])
