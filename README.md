@@ -1,5 +1,4 @@
-### This repo is the Udacity Deep Reinforcement Learning course Continue Control Project
-> The README should be designed for a general audience that may not be familiar with the Nanodegree program; you should describe the environment that you solved, along with how to install the requirements before running the code in your repository.
+## This repo is the Udacity Deep Reinforcement Learning course Continue Control Project
 
 #### Steps
 1. install python
