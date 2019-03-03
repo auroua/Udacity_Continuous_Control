@@ -19,8 +19,8 @@ class A2CAgent(torch.nn.Module):
         self.online_rewards = np.zeros(hyper_parameter.AGENTS_NUM)
         self.episode_rewards = []
         self.total_steps = 0
-        self.optimizer = torch.optim.RMSprop(self.policy.total_params, lr=0.0001)
-        # self.optimizer = torch.optim.Adam(self.policy.total_params, lr=1e-4, eps=1e-5)
+        # self.optimizer = torch.optim.RMSprop(self.policy.total_params, lr=0.00005)
+        self.optimizer = torch.optim.Adam(self.policy.total_params, lr=1e-4, eps=1e-5)
         # self.optimizer = adabound.AdaBound(self.policy.total_params, lr=1e-4, final_lr=1.0)
 
     def step(self):

@@ -40,21 +40,6 @@
 * Dueling DQN pixel state space
 
 
-#### Results
-*  **dqn_vec**
-
-    ```
-    Episode 100	Average Score: 0.76
-    Episode 200	Average Score: 3.49
-    Episode 300	Average Score: 6.43
-    Episode 400	Average Score: 9.61
-    Episode 500	Average Score: 12.18
-    Episode 559	 Score: 16.00
-    Environment solved in 459 episodes!	Average Score: 13.00
-    ```
-    ![sedv](./results/scores_episode_dqn_vec.png)
-
-
 
 #### References
 1. [AdaBound](https://github.com/Luolc/AdaBound)
